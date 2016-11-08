@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Lagarsystem.Models.StockItem>
+
+@{
+    ViewBag.Title = "Search";
+}
+
+<h2>Search</h2>
+@using (Html.BeginForm("Search", "Stock", FormMethod.Post))
+{
+    <p style="float:right;">
+        @Html.TextBox("SearchTerm")
+        <input type="submit" value="Search" />
+    </p>
+}
+
+<table class="table" data-toggle="table">
+    <tr>
+        <th data-sortable="true">
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th data-sortable="true">
+            @Html.DisplayNameFor(model => model.Price)
+        </th>
+        <th data-sortable="true">
+            @Html.DisplayNameFor(model => model.Shelf)
+        </th>
+        <th data-sortable="true">
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Price)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Shelf)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Description)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ItemID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ItemID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ItemID })
+        </td>
+    </tr>
+}
+
+</table>
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
