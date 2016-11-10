@@ -1,31 +1,18 @@
 ﻿@model StockItem
 
-@{
-    ViewBag.Title = "Edit";
-}
+<div class="alert alert-danger" role="alert" id="fail-alert">
+    <strong>Something Went wrong!</strong>
+</div>
 
-<h2>Edit</h2>
+<div class="alert alert-success" role="alert" id="success-alert">
+    <strong>Success!</strong>
+</div>
 
-@if (ViewBag.Message != null)
-{
-    <div class="alert alert-success" role="alert">
-        <strong>Success!</strong> ViewBag.Message
-    </div>
-}
-
-<!--@@using (Ajax.BeginForm(
-    new AjaxOptions{HttpMethod="get", InsertionMode=InsertionMode.Replace, UpdateTargetId="TargetIDinsideDom"}))-->
-
-@using (Html.BeginForm())
-{
+<form method="POST" action='@Url.Action("Create")'
+      id="CreateForm">
     @Html.AntiForgeryToken()
-    
     <div class="form-horizontal">
-        <h4>StockItem</h4>
-        <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.ItemID)
-
         <div class="form-group">
             @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
@@ -57,19 +44,5 @@
                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
             </div>
         </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
-            </div>
-        </div>
     </div>
-}
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
-
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
+</form>

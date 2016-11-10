@@ -6,49 +6,49 @@ using Lagarsystem.Models;
 using Lagarsystem.DataAccessLayer;
 using System.Data.Entity;
 using System.Web.Mvc;
+using System.Data.Entity.Core;
 
 namespace Lagarsystem.Repositories
 {
     public class StoreRepository
     {
         StoreContext SIDB = new StoreContext();
-        List<StockItem> itemList;
 
         public StoreRepository()
         {
-            itemList = SIDB.Items.ToList();
         }
 
-        public List<StockItem> GetAllItems(){
-            return this.itemList;
+        public List<StockItem> GetAllItems()
+        {
+            return SIDB.Items.ToList();
         }
 
         public StockItem GetItem(int? id)
         {
-            return this.itemList.FirstOrDefault(i => i.ItemID == id);
+            return SIDB.Items.FirstOrDefault(i => i.ItemID == id);
         }
 
         public void AddItemToDB(StockItem SI)
         {
             SIDB.Items.Add(SI);
             SIDB.SaveChanges();
-            this.itemList.Add(SI);
         }
 
-        public void EditItem(StockItem item, EntityState state)
+        public void EditItem(StockItem item)
         {
-            SIDB.Entry(item).State = state;
+            //SIDB.Items.Find(item);
+
+            SIDB.Entry(item).State = EntityState.Modified;
+
             SIDB.SaveChanges();
         }
 
-        public bool RemoveItemFromDB(int? id)
+        public bool RemoveItemFromDB(StockItem item)
         {
-            StockItem item = this.itemList.Find(i => i.ItemID == id);
             if (item != null)
             {
                 SIDB.Items.Remove(item);
                 SIDB.SaveChanges();
-                this.itemList.Remove(item);
 
                 return true;
             }
@@ -56,14 +56,51 @@ namespace Lagarsystem.Repositories
             return false;
         }
 
-        public List<StockItem> SearchForItem(string SearchTerm)
+        public List<StockItem> SearchForItem(string SearchTerm = null)
         {
-            List<StockItem> allitemss = this.itemList;
+            List<StockItem> allitems = this.SIDB.Items.Where(i => SearchTerm == null || i.ItemID.ToString().StartsWith(SearchTerm) || i.Name.ToLower().StartsWith(SearchTerm.ToLower()) || i.Price.ToString().StartsWith(SearchTerm) || i.Shelf.ToLower().StartsWith(SearchTerm.ToLower()) || i.Description.ToLower().StartsWith(SearchTerm.ToLower())).ToList();
+            //.Select(o => new { ItemID = o.ItemID, Name = o.Name, Price = o.Price, Shelf = o.Shelf, Description = o.Description });
 
-            if (!String.IsNullOrEmpty(SearchTerm))
-                allitemss = allitemss.Where(i => i.ItemID.ToString().Contains(SearchTerm) || i.Name.ToLower().Contains(SearchTerm.ToLower()) || i.Price.ToString().Contains(SearchTerm) || i.Shelf.ToLower().Contains(SearchTerm.ToLower()) || i.Description.ToLower().Contains(SearchTerm.ToLower())).ToList();
-
-            return allitemss;
+            return allitems;
         }
+
+        public List<Autocomplete> GetItems(string SearchTerm = null)
+        {
+            List<Autocomplete> items = new List<Autocomplete>();
+            try
+            {
+                var results = this.SIDB.Items.Where(i => SearchTerm == null || i.ItemID.ToString().StartsWith(SearchTerm) || i.Name.ToLower().StartsWith(SearchTerm.ToLower()) || i.Price.ToString().StartsWith(SearchTerm) || i.Shelf.ToLower().StartsWith(SearchTerm.ToLower()) || i.Description.ToLower().StartsWith(SearchTerm.ToLower())).ToList();
+
+                foreach (var r in results)
+                {
+                    // create objects
+                    Autocomplete item = new Autocomplete()
+                    {
+                        Name = r.Name,
+                        ItemID = r.ItemID,
+                        Price = r.Price,
+                        Shelf = r.Shelf,
+                        Description = r.Description,
+                    };
+
+                    items.Add(item);
+                }
+
+            }
+            catch (EntityCommandExecutionException eceex)
+            {
+                if (eceex.InnerException != null)
+                {
+                    throw eceex.InnerException;
+                }
+                throw;
+            }
+            catch
+            {
+                throw;
+            }
+            return items;
+        }
+
     }
 }

@@ -21,16 +21,28 @@ namespace Lagarsystem.Controllers
             //ViewData.Add("Message", (string)null);
         }
 
-        // GET: Stock
-        public ActionResult Index()
+        public ActionResult AutoComplete(string SearchTerm = null)
         {
-            return View(SIDB.GetAllItems());
+            List<StockItem> items = SIDB.SearchForItem(SearchTerm);
+            
+            //items
+
+            return Json(items, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Create()
+        // GET: Stock
+        public ActionResult Index(string SearchTerm = null)
         {
-            return View();
+            List<StockItem> items = SIDB.SearchForItem(SearchTerm);
+
+            if(Request.IsAjaxRequest())
+            {
+                return PartialView("ItemsList", items);
+            }
+
+            return View(items);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -40,7 +52,7 @@ namespace Lagarsystem.Controllers
             {
                 SIDB.AddItemToDB(SI);
             }
-            return RedirectToAction("Index");
+            return Json(new { message = "Success" }, JsonRequestBehavior.AllowGet); 
         }
 
         public ActionResult Edit(int? id)
@@ -63,13 +75,14 @@ namespace Lagarsystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ItemId, Name, Price, Shelf, Description")] StockItem SI)
+        public ActionResult Edit([Bind(Include = "ItemId, Name, Price, Shelf, Description")] StockItem item)
         {
             if (ModelState.IsValid)
             {
-                SIDB.EditItem(SI, EntityState.Modified);
+                SIDB.EditItem(item);
+                return RedirectToAction("Index");
             }
-            return RedirectToAction("Index");
+            return View(item);
         }
 
         public ActionResult Remove(int? id)
@@ -95,15 +108,21 @@ namespace Lagarsystem.Controllers
         public ActionResult RemoveConfirm(int? id) 
         {
             StockItem item = SIDB.GetItem(id);
-            SIDB.RemoveItemFromDB(id);
+            SIDB.RemoveItemFromDB(item);
             return RedirectToAction("Index");
         }
 
-        public ActionResult Search(string SearchTerm)
+        [HttpGet]
+        public ActionResult Search(string SearchTerm = null)
         {
-            IEnumerable<StockItem> allitems = SIDB.SearchForItem(SearchTerm);
-            
-            return View(allitems);
+            List<StockItem> items = SIDB.SearchForItem(SearchTerm);
+
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("ItemsList", items);
+            }
+
+            return View(items);
         }
 
         public ActionResult Details(int? id)

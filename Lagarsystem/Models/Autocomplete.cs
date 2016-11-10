@@ -1,22 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using System.ComponentModel.DataAnnotations;
+using System.Data.Entity;
+
 
 namespace Lagarsystem.Models
 {
-    public class StockItem
+    public class Autocomplete
     {
-        [Key]
         public int ItemID { get; set; }
 
         public string Name { get; set; }
 
-        //[DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
         public decimal Price { get; set; }
         public string Shelf { get; set; }
         public string Description { get; set; }
-
     }
+
 }
