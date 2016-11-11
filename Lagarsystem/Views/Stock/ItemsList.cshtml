@@ -1,29 +1,50 @@
-﻿@model IEnumerable<Lagarsystem.Models.StockItem>
-
-
-
-<tbody id="itemslist">
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Shelf)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ItemID }, new { @class = "btn btn-default" })
-                <a class="btn btn-default detailsLink" id=item.itemid data-content='@Html.Partial("DetailsPopover", item)' tabindex="0" data-html="true" data-toggle="popover" data-trigger="focus" data-placement="bottom" style="cursor:pointer">Details</a>
-                @Html.ActionLink("Remove", "Remove", new { id = item.ItemID }, new { @class = "btn btn-default" })
-            </td>
-        </tr>
-    }
-</tbody>
-
+﻿@model IPagedList<StockItem>
+<div id="itemslist">
+    <table class="table" data-toggle="table">
+        <thead>
+            <tr>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.First().Name)
+                </th>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.First().Price)
+                </th>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.First().Shelf)
+                </th>
+                <th data-sortable="true">
+                    @Html.DisplayNameFor(model => model.First().Description)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Shelf)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Description)
+                    </td>
+                    <td>
+                        <button class="btn btn-primary editLink" data-toggle="modal" data-script-target="editModal" action="@Url.Action("Edit", "Stock", new { id = @item.ItemID })" method="get">Edit</button>
+                        <button class="btn btn-info detailsLink" title="Details" data-content='@Html.Partial("DetailsPopover", item)' tabindex="0" data-html="true" data-toggle="popover" data-trigger="focus" data-placement="bottom" style="cursor:pointer">Details</button>
+                        <button class="btn btn-danger removeButton" action="@Url.Action("Remove", "Stock", new { id = @item.ItemID })" method="get" data-script-target="removeAlert">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagedList" data-script-target="#itemslist">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
+    PagedListRenderOptions.ClassicPlusFirstAndLast)
+    </div>
+</div>

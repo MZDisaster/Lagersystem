@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Data.Entity;
 using System.Net;
 using Lagarsystem.Repositories;
+using PagedList;
 
 
 namespace Lagarsystem.Controllers
@@ -23,17 +24,17 @@ namespace Lagarsystem.Controllers
 
         public ActionResult AutoComplete(string SearchTerm = null)
         {
-            List<StockItem> items = SIDB.SearchForItem(SearchTerm);
-            
+            var items = SIDB.SearchForItem(SearchTerm);
+
             //items
 
             return Json(items, JsonRequestBehavior.AllowGet);
         }
 
         // GET: Stock
-        public ActionResult Index(string SearchTerm = null)
+        public ActionResult Index(string SearchTerm = null, int page = 1)
         {
-            List<StockItem> items = SIDB.SearchForItem(SearchTerm);
+            var items = SIDB.SearchForItem(SearchTerm).ToPagedList(page, 10);
 
             if(Request.IsAjaxRequest())
             {
@@ -52,7 +53,7 @@ namespace Lagarsystem.Controllers
             {
                 SIDB.AddItemToDB(SI);
             }
-            return Json(new { message = "Success" }, JsonRequestBehavior.AllowGet); 
+            return Json(new { status = "success", message = "Item Created!" });
         }
 
         public ActionResult Edit(int? id)
@@ -70,7 +71,12 @@ namespace Lagarsystem.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(item);
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("EditModal", item);
+            }
+            
+           return View(item);
         }
 
         [HttpPost]
@@ -80,7 +86,7 @@ namespace Lagarsystem.Controllers
             if (ModelState.IsValid)
             {
                 SIDB.EditItem(item);
-                return RedirectToAction("Index");
+                return Json(new { message = "Item Edited!" });
             }
             return View(item);
         }
@@ -100,6 +106,11 @@ namespace Lagarsystem.Controllers
                 return RedirectToAction("Index");
             }
 
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("RemoveModal", item);
+            }
+
             return View(item);
         }
 
@@ -109,7 +120,7 @@ namespace Lagarsystem.Controllers
         {
             StockItem item = SIDB.GetItem(id);
             SIDB.RemoveItemFromDB(item);
-            return RedirectToAction("Index");
+            return Json(new { message = "Item Removed!" });
         }
 
         [HttpGet]

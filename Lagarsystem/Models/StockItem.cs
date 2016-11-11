@@ -11,11 +11,15 @@ namespace Lagarsystem.Models
         [Key]
         public int ItemID { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
         //[DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [Required]
         public decimal Price { get; set; }
+        [Required]
         public string Shelf { get; set; }
+        [Required]
         public string Description { get; set; }
 
     }
