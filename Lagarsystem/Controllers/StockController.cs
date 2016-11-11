@@ -45,11 +45,13 @@ namespace Lagarsystem.Controllers
             return View(items);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ItemId, Name, Price, Shelf, Description")] StockItem SI)
         {
+            if(SI == null)
+               return RedirectToAction("Index");
+
             if(ModelState.IsValid)
             {
                 SIDB.AddItemToDB(SI);
@@ -134,7 +136,7 @@ namespace Lagarsystem.Controllers
                 return PartialView("ItemsList", items);
             }
 
-            return View("Index");
+            return RedirectToAction("Index");
         }
 
         public ActionResult Details(int? id)
@@ -153,11 +155,6 @@ namespace Lagarsystem.Controllers
             }
 
             return View(item);
-        }
-
-        public ActionResult About()
-        {
-            return View();
         }
     }
 }
