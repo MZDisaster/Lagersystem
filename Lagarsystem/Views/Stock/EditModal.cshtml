@@ -1,7 +1,10 @@
 ﻿@model StockItem
 
+
 <div class="form-horizontal">
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.ItemID)
+
     <div class="form-group">
         @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
@@ -35,3 +38,8 @@
     </div>
 </div>
 
+<script>
+    $(function () {
+        jQuery.validator.unobtrusive.parse("#editForm");
+    });
+</script>

@@ -1,32 +1,40 @@
-﻿@model IEnumerable<StockItem>
+﻿@model IPagedList<StockItem>
 @{
     StockItem CreateModel = new StockItem();
 }
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Items Manager";
 }
-@if (TempData["Message"] != null)
-{
-    
-}
-
 <div class="alert text-center" role="alert" id="general-alert">
 </div>
-
-<h2>Index</h2>
+<h2>@ViewBag.Title</h2>
 
 <div class="row">
-    <div class="col-sm-8 col-md-8">
+    <div class="col-xs-2 col-md-1 pull-left">
         <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createModal">
             Create
         </button>
     </div>
-    <div class="col-sm-4 col-md-4">
+    <div class="col-xs-3 col-md-6">
+        <button type="button" class="btn btn-primary btn-sm" id="showAllItems" method="get" action='@Url.Action("Search")' data-script-ajax="true" data-script-target="#itemslist">
+            Show All
+        </button>
+    </div>
+    <div class="col-xs-3 col-md-2">
+        <select class="form-control" id="searchFormType">
+            <option selected>All</option>
+            <option>Name</option>
+            <option>Price</option>
+            <option>Shelf</option>
+            <option>Description</option>
+        </select>
+    </div>
+    <div class="col-xs-4 col-md-3 pull-right">
         <form method="get" action='@Url.Action("Search")'
-              data-script-ajax="true" data-script-target="#itemslist">
+              data-script-ajax="true" data-script-target="#itemslist" id="searchForm" class="form-group">
             <div class="input-group">
-                <input type="search" class="form-control typeahead" placeholder="Search" name="SearchTerm" data-script-autocomplete="@Url.Action("AutoComplete")" />
+                <input type="search" class="form-control typeahead" placeholder="Search" name="SearchTerm" data-script-autocomplete="@Url.Action("Search")" />
                 <!--@@Html.TextBox("SearchTerm", "", new { @@class = "form-control", @@placeholder = "Search" })>-->
                 <div class="input-group-btn">
                     <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
@@ -35,26 +43,9 @@
         </form>
     </div>
 </div>
-<table class="table" data-toggle="table">
-    <thead>
-        <tr>
-            <th data-sortable="true">
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th data-sortable="true">
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th data-sortable="true">
-                @Html.DisplayNameFor(model => model.Shelf)
-            </th>
-            <th data-sortable="true">
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    @Html.Partial("ItemsList", Model)
-</table>
+
+@Html.Partial("ItemsList", Model)
+
 
 <div class="modal fade" tabindex="-1" role="dialog" id="createModal">
     <div class="modal-dialog" role="document">
@@ -64,11 +55,20 @@
                 <h4 class="modal-title">Create</h4>
             </div>
             <div class="modal-body">
-                @Html.Partial("CreateModal", CreateModel)
+                @using (Ajax.BeginForm("Create", "Stock", null, new AjaxOptions
+                {
+                    InsertionMode = InsertionMode.Replace,
+                    UpdateTargetId = "createformView",
+                    OnSuccess = "CreateFormSubmitted"
+                }, new { id = "createForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div id="createformView">@Html.Partial("CreateModal", CreateModel)</div>
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <input type="submit" value="Create" class="btn btn-primary" id="createModalSubmit"/>
+                <input type="submit" value="Create" class="btn btn-primary" form="createForm"/>
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -79,14 +79,40 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Create</h4>
+                <h4 class="modal-title">Edit</h4>
             </div>
             <div class="modal-body">
-                
+                @using (Ajax.BeginForm("Edit", "Stock", new AjaxOptions
+                {
+                    InsertionMode = InsertionMode.Replace,
+                    UpdateTargetId = "editformView",
+                }, new { id = "editForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div id="editformView"></div>
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <input type="submit" value="Save" class="btn btn-primary" id="editModalSubmit" />
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" tabindex="-1" role="dialog" id="removeModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Remove</h4>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <input type="submit" value="Confirm remove" class="btn btn-danger" id="removeModalSubmit" />
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->

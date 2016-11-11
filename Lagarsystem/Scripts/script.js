@@ -1,35 +1,35 @@
-﻿$(function() {
+﻿$(function () {
 
     $("#success-alert").hide();
     $("#fail-alert").hide();
     $("#general-alert").hide();
 
-    $("#myWish").click(function showAlert() {
-        $("#success-alert").alert();
-        $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
-            $("#success-alert").slideUp(500);
-        });
-    });
-
     var createModalSubmitClicked = function () {
-        $('#CreateForm').submit();
-    }
+        $('#createForm').submit();
+    };
 
     var CreateFormSubmitted = function () {
+        var $createForm = $('#createForm');
 
-        var DataToPost = $('#CreateForm').serializeArray();
-        DataToPost.push({ __RequestVerificationToken: $('[name=__RequestVerificationToken]').val() });
+        console.log($createForm.valid());
 
-        var formURL = $(this).attr("action");
+        if (!$createForm.valid()) {
+            return false;
+        }
+
+        var DataToPost = $createForm.serializeArray();
+        DataToPost.push({ __RequestVerificationToken: $('#createForm input[name=__RequestVerificationToken]').val() });
+
+        var formURL = $createForm.attr("action");
 
         $.ajax({
             type: "POST",
             url: formURL,
             data: DataToPost,
-            success: function () {
+            success: function (data) {
                 $('#createModal').modal('hide');
 
-                $("#general-alert").html("<strong>Item Created!</strong>");
+                $("#general-alert").html("<strong>" + data.message + "</strong>");
                 $("#general-alert").addClass("alert-success");
                 $("#general-alert").show();
                 $("#general-alert").alert();
@@ -39,19 +39,7 @@
                     $("#general-alert").html("");
                 });
 
-                var $form = $("form[data-script-ajax='true']");
-                console.log($form);
-                var options = {
-                    url: $form.attr("action"),
-                    type: $form.attr("method"),
-                    data: $form.serialize()
-                };
-
-                $.ajax(options).done(function (data) {
-                    var $target = $($form.attr("data-script-target"));
-                    $target.replaceWith(data);
-                    return data;
-                });
+                ShowItemsListAjax();
             },
             error: function () {
                 $('#createModal').modal('hide');
@@ -69,29 +57,89 @@
         });
 
         return false;
-    }
+    };
 
-    var ShowItemsListAjax = function () {
-        var $form = $(this);
+    var editModalSubmitClicked = function () {
+        $('#editForm').submit();
+    };
+
+    var removeModalSubmitClicked = function () {
+        var $removeForm = $('#RemoveForm');
+        var DataToPost = $removeForm.serializeArray();
+        DataToPost.push({ __RequestVerificationToken: $('#editForm input[name=__RequestVerificationToken]').val() });
+
+        var $formURL = $removeForm.attr("action");
+
+        $.ajax({
+            type: "POST",
+            url: $formURL,
+            data: DataToPost,
+            success: function (data) {
+                $('#removeModal').modal('hide');
+
+                $("#general-alert").html("<strong>" + data.message + "</strong>");
+                $("#general-alert").addClass("alert-success");
+                $("#general-alert").show();
+                $("#general-alert").alert();
+                $("#general-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#general-alert").slideUp(500);
+                    $("#general-alert").removeClass("alert-success");
+                    $("#general-alert").html("");
+                });
+
+                ShowItemsListAjax();
+            },
+            error: function () {
+                $('#removeModal').modal('hide');
+
+                $("#general-alert").html("<strong>Something went wrong!</strong>");
+                $("#general-alert").addClass("alert-danger");
+                $("#general-alert").show();
+                $("#general-alert").alert();
+                $("#general-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#general-alert").slideUp(500);
+                    $("#general-alert").removeClass("alert-danger");
+                    $("#general-alert").html("");
+                });
+            }
+        });
+
+        return false;
+    };
+
+    var ShowItemsListAjax = function (formselector) {
+        var $obj = $(this);
+        var $action = $obj.attr("action");
+
+        if (typeof $action == typeof undefined || $action == false || $action == 'undefind')
+            $action = "";
+
+        var $url = $action + "?searchBase=" + $('#searchFormType option:selected').val();
+
+        console.log($action);
 
         var options = {
-            url: $form.attr("action"),
-            type: $form.attr("method"),
-            data: $form.serialize()
+            url: $url,
+            type: 'get',
+            data: $obj.serialize()
         };
 
         $.ajax(options).done(function (data) {
-            var $target = $($form.attr("data-script-target"));
-            $target.replaceWith(data);
+            var $target = $($obj.attr("data-script-target"));
 
+            if (typeof $action == typeof undefined || $action == false || $action == 'undefind')
+                $target = $('#itemslist');
+
+            $target.replaceWith(data);
+            $('.table').bootstrapTable();
         });
         return false;
     };
-    
+    /*
     $.getJSON('/Stock/Autocomplete', function (allData) {
         $("input[data-script-autocomplete]").typeahead({ source: allData });
     });
-    /*
+    
     $('form').submit(function () {
         if ($(this).valid()) {
             $.ajax({
@@ -140,14 +188,26 @@
             //$.getJSON($("input[data-script-autocomplete]").attr("data-script-autocomplete"), )
         });*/
 
-    var DetailsLinkClicked = function () {
+    var EditLinkClicked = function () {
+        
         var $this = $(this);
-        $this.popover('show');
-    }
 
-    var DetailsLinkClicked = function () {
-        $('#editModal').modal('show');
+        var options = {
+            url: $this.attr("action"),
+            type: $this.attr("method"),
+            data: $this.serialize()
+        };
 
+        $.ajax(options).done(function (data) {
+            var $target = $('#editformView');
+            $target.html(data);
+            $('#editModal').modal('show');
+            $('.table').bootstrapTable();
+        });
+        return false;
+    };
+
+    var RemoveButtonClicked = function () {
         var $modal = $(this);
 
         var options = {
@@ -157,17 +217,102 @@
         };
 
         $.ajax(options).done(function (data) {
-            var $target = $modal.children(".modal-body");
-            $target.replaceWith(data);
+            var $target = $('#removeModal .modal-body');
+            $target.html(data);
+            $('#removeModal').modal('show');
+            $('.table').bootstrapTable();
         });
+        return false;
+    };
+
+
+
+    var getPage = function () {
+        var $this = $(this);
+
+        var options = {
+            url: $this.attr('href'),
+            type: 'get',
+            data: $('#searchForm').serialize()
+        };
+
+        $.ajax(options).done(function (data) {
+            var target = $this.parents("div.pagedList").attr("data-script-target");
+            $(target).replaceWith(data);
+
+            $('.table').bootstrapTable();
+        });
+
+        
+        return false;
+    };
+
+    var EditFormSubmitted = function () {
+        var $editForm = $('#editForm');
+        if (!$editForm.valid()) {
+            return false;
+        }
+
+        var DataToPost = $editForm.serializeArray();
+        DataToPost.push({ __RequestVerificationToken: $('#editForm input[name=__RequestVerificationToken]').val() });
+
+        var formURL = $editForm.attr("action");
+
+        $.ajax({
+            type: "POST",
+            url: formURL,
+            data: DataToPost,
+            success: function (data) {
+                $('#editModal').modal('hide');
+
+                $("#general-alert").html("<strong>" + data.message + "</strong>");
+                $("#general-alert").addClass("alert-success");
+                $("#general-alert").show();
+                $("#general-alert").alert();
+                $("#general-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#general-alert").slideUp(500);
+                    $("#general-alert").removeClass("alert-success");
+                    $("#general-alert").html("");
+                });
+
+                ShowItemsListAjax();
+            },
+            error: function () {
+                $('#editModal').modal('hide');
+
+                $("#general-alert").html("<strong>Something went wrong!</strong>");
+                $("#general-alert").addClass("alert-danger");
+                $("#general-alert").show();
+                $("#general-alert").alert();
+                $("#general-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#general-alert").slideUp(500);
+                    $("#general-alert").removeClass("alert-danger");
+                    $("#general-alert").html("");
+                });
+            }
+        });
+
         return false;
     }
 
+    $('body').popover({
+        selector: '.detailsLink',
+        trigger: 'focus',
+        viewport: 'container'
+    });
 
-    $('.table').on("click", ".detailsLink", EditLinkClicked);
-    $('.table').on("click", ".detailsLink", DetailsLinkClicked);
-    $('#CreateForm').submit(CreateFormSubmitted);
-    $("#createModalSubmit").click(createModalSubmitClicked);
-    $("form[data-script-ajax='true']").submit(ShowItemsListAjax);
-    //$("input[data-script-autocomplete]").each(AutoCompleteAjax);
+    $('body').on("click", ".pagedList a" ,getPage);
+    $('body').on("click", ".editLink", EditLinkClicked);
+    $('body').on("click", ".removeButton", RemoveButtonClicked);
+    $("#showAllItems").click(ShowItemsListAjax);
+    $("#removeModalSubmit").click(removeModalSubmitClicked);
+
+    $('#editForm').submit(EditFormSubmitted);
+    $("#editModalSubmit").click(editModalSubmitClicked);
+    
+    $('#createForm').submit(CreateFormSubmitted);
+    //$("#createModalSubmit").click(createModalSubmitClicked);
+
+    $("#searchForm").submit(ShowItemsListAjax);
+    //$("[data-script-autocomplete]").each(AutoCompleteAjax);
 })
